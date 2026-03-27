@@ -895,6 +895,8 @@ function loadPage(pageName) {
         setTimeout(() => {
             initPageFeatures();
             initGalleryScroll();
+            initSupabaseForms();
+            checkAvailabilityOnDateChange();
         }, 100);
     }
    
@@ -1039,14 +1041,318 @@ function initCopyAddress() {
             });
     });
 }
-       
+
 // ====================
-// 5. FORM SUBMISSION HANDLING
+// SUPABASE INTEGRATION - NEW
 // ====================
-function initForms() {
+
+// Show notification
+function showNotification(type, message) {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+        <button class="notification-close"><i class="fas fa-times"></i></button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: ${type === 'success' ? 'linear-gradient(135deg, #28a745, #218838)' : 'linear-gradient(135deg, #dc3545, #c82333)'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        z-index: 2000;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        animation: slideIn 0.3s ease;
+        min-width: 300px;
+    `;
+    
+    const closeBtn = notification.querySelector('.notification-close');
+    closeBtn.style.cssText = `
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 1rem;
+        margin-left: auto;
+    `;
+    
+    closeBtn.addEventListener('click', () => notification.remove());
+    
+    setTimeout(() => {
+        if (notification.parentNode) notification.remove();
+    }, 5000);
+}
+
+// Add notification styles
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    .notification-content {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .notification-content i {
+        font-size: 1.2rem;
+    }
+`;
+document.head.appendChild(notificationStyle);
+
+// Initialize Supabase forms
+function initSupabaseForms() {
+    // Booking Form
+    const bookingForm = document.getElementById('bookingForm');
+    if (bookingForm) {
+        // Remove existing listener and add new one
+        const newBookingForm = bookingForm.cloneNode(true);
+        bookingForm.parentNode.replaceChild(newBookingForm, bookingForm);
+        newBookingForm.addEventListener('submit', handleBookingSubmit);
+    }
+    
     // Contact Form
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
+        const newContactForm = contactForm.cloneNode(true);
+        contactForm.parentNode.replaceChild(newContactForm, contactForm);
+        newContactForm.addEventListener('submit', handleContactSubmit);
+    }
+    
+    // Newsletter forms
+    const newsletterForms = document.querySelectorAll('.newsletter-form');
+    newsletterForms.forEach(form => {
+        form.removeEventListener('submit', handleNewsletterSubmit);
+        form.addEventListener('submit', handleNewsletterSubmit);
+    });
+}
+
+// Handle booking form submission
+async function handleBookingSubmit(e) {
+    e.preventDefault();
+    
+    if (typeof db === 'undefined') {
+        showNotification('error', 'Database not connected. Please check your Supabase configuration.');
+        return;
+    }
+    
+    const formData = {
+        firstName: document.getElementById('firstName')?.value,
+        lastName: document.getElementById('lastName')?.value,
+        email: document.getElementById('email')?.value,
+        phone: document.getElementById('phone')?.value,
+        address: document.getElementById('address')?.value,
+        checkIn: document.getElementById('checkIn')?.value,
+        checkOut: document.getElementById('checkOut')?.value,
+        roomType: document.getElementById('roomType')?.value,
+        guests: document.getElementById('guests')?.value,
+        rooms: document.getElementById('rooms')?.value,
+        requests: document.getElementById('requests')?.value,
+        payment: document.getElementById('payment')?.value
+    };
+    
+    // Validate required fields
+    const required = ['firstName', 'lastName', 'email', 'phone', 'checkIn', 'checkOut', 'roomType', 'guests', 'rooms', 'payment'];
+    for (let field of required) {
+        if (!formData[field]) {
+            showNotification('error', `Please fill in all required fields.`);
+            return;
+        }
+    }
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Processing...';
+    submitBtn.disabled = true;
+    
+    const result = await db.createBooking(formData);
+    
+    if (result.success) {
+        showNotification('success', result.message);
+        e.target.reset();
+        
+        if (result.data && result.data.booking_reference) {
+            setTimeout(() => {
+                showNotification('success', `Your booking reference: ${result.data.booking_reference}. Please save this for future reference.`);
+            }, 3000);
+        }
+    } else {
+        showNotification('error', result.message);
+    }
+    
+    submitBtn.textContent = originalText;
+    submitBtn.disabled = false;
+}
+
+// Handle contact form submission
+async function handleContactSubmit(e) {
+    e.preventDefault();
+    
+    if (typeof db === 'undefined') {
+        showNotification('error', 'Database not connected. Please check your Supabase configuration.');
+        return;
+    }
+    
+    const formData = {
+        name: document.getElementById('name')?.value,
+        email: document.getElementById('email')?.value,
+        phone: document.getElementById('phone')?.value,
+        subject: document.getElementById('subject')?.value,
+        message: document.getElementById('message')?.value
+    };
+    
+    const result = await db.submitContact(formData);
+    
+    if (result.success) {
+        showNotification('success', result.message);
+        e.target.reset();
+    } else {
+        showNotification('error', result.message);
+    }
+}
+
+// Handle newsletter submission
+async function handleNewsletterSubmit(e) {
+    e.preventDefault();
+    const emailInput = e.target.querySelector('input[type="email"]');
+    if (emailInput && emailInput.value && typeof db !== 'undefined') {
+        const result = await db.subscribeNewsletter(emailInput.value);
+        showNotification(result.success ? 'success' : 'error', result.message);
+        if (result.success) emailInput.value = '';
+    } else if (typeof db === 'undefined') {
+        showNotification('error', 'Database not connected. Please check your Supabase configuration.');
+    }
+}
+
+// Check room availability in real-time
+async function checkAvailabilityOnDateChange() {
+    const checkIn = document.getElementById('checkIn');
+    const checkOut = document.getElementById('checkOut');
+    const roomType = document.getElementById('roomType');
+    const rooms = document.getElementById('rooms');
+    
+    if (checkIn && checkOut && roomType && rooms && typeof db !== 'undefined') {
+        const checkAvailability = async () => {
+            if (checkIn.value && checkOut.value && roomType.value) {
+                // Get room type ID from slug
+                const roomTypes = await db.getRoomTypes();
+                const selectedRoom = roomTypes.find(r => r.slug === roomType.value);
+                
+                if (selectedRoom) {
+                    const isAvailable = await db.checkAvailability(
+                        selectedRoom.id,
+                        checkIn.value,
+                        checkOut.value,
+                        parseInt(rooms.value || 1)
+                    );
+                    
+                    const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
+                    if (submitBtn) {
+                        if (!isAvailable) {
+                            submitBtn.disabled = true;
+                            submitBtn.style.opacity = '0.5';
+                            showNotification('error', 'Selected room not available for these dates. Please choose different dates.');
+                        } else {
+                            submitBtn.disabled = false;
+                            submitBtn.style.opacity = '1';
+                        }
+                    }
+                }
+            }
+        };
+        
+        checkIn.removeEventListener('change', checkAvailability);
+        checkOut.removeEventListener('change', checkAvailability);
+        roomType.removeEventListener('change', checkAvailability);
+        rooms.removeEventListener('change', checkAvailability);
+        
+        checkIn.addEventListener('change', checkAvailability);
+        checkOut.addEventListener('change', checkAvailability);
+        roomType.addEventListener('change', checkAvailability);
+        rooms.addEventListener('change', checkAvailability);
+    }
+}
+
+// Update room type dropdown from Supabase
+async function updateRoomTypeDropdown() {
+    const roomTypeSelect = document.getElementById('roomType');
+    if (roomTypeSelect && typeof db !== 'undefined') {
+        const rooms = await db.getRoomTypes();
+        if (rooms && rooms.length > 0) {
+            roomTypeSelect.innerHTML = '<option value="">Select Room Type</option>';
+            rooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room.slug;
+                option.textContent = `${room.name} - ₱${room.price_per_night}/night (Max ${room.max_guests} guests)`;
+                roomTypeSelect.appendChild(option);
+            });
+        }
+    }
+}
+
+// Update special offers from Supabase
+async function updateSpecialOffers() {
+    const offersGrid = document.getElementById('offers');
+    if (offersGrid && typeof db !== 'undefined') {
+        const offers = await db.getSpecialOffers();
+        if (offers && offers.length > 0) {
+            offersGrid.innerHTML = '';
+            offers.forEach(offer => {
+                const offerCard = document.createElement('div');
+                offerCard.className = 'offer-card';
+                offerCard.innerHTML = `
+                    <div class="offer-img" style="background-image: url('${offer.image_url}');"></div>
+                    <div class="offer-content">
+                        <h3>${offer.title}</h3>
+                        <p>${offer.description}</p>
+                        <div class="offer-details">
+                            <p><i class="fas fa-tag"></i> <strong>Discount:</strong> ${offer.discount_percentage}% OFF</p>
+                            <p><i class="fas fa-calendar-alt"></i> <strong>Valid Until:</strong> ${new Date(offer.valid_to).toLocaleDateString()}</p>
+                        </div>
+                        <button class="btn" onclick="loadPage('booking')">Book Now</button>
+                    </div>
+                `;
+                offersGrid.appendChild(offerCard);
+            });
+        }
+    }
+}
+
+// Initialize Supabase data
+async function initSupabaseData() {
+    if (typeof db !== 'undefined') {
+        await updateRoomTypeDropdown();
+        await updateSpecialOffers();
+    }
+}
+
+// ====================
+// 5. FORM SUBMISSION HANDLING (Original - Keep for fallback)
+// ====================
+function initForms() {
+    // This is kept as fallback for when Supabase is not configured
+    // Contact Form
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm && typeof db === 'undefined') {
         contactForm.addEventListener('submit', (e) => {
             e.preventDefault();
             alert('Thank you for your message! We will get back to you soon.');
@@ -1056,7 +1362,7 @@ function initForms() {
            
     // Booking Form
     const bookingForm = document.getElementById('bookingForm');
-    if (bookingForm) {
+    if (bookingForm && typeof db === 'undefined') {
         bookingForm.addEventListener('submit', (e) => {
             e.preventDefault();
             alert('Thank you for your booking request! We will contact you shortly to confirm your reservation.');
@@ -1072,6 +1378,8 @@ function initPageFeatures() {
     initGalleryScroll();
     initCopyAddress();
     initForms();
+    initSupabaseForms();
+    initSupabaseData();
 }
        
 // ====================
@@ -1082,14 +1390,16 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPage('home');
            
     // Menu toggle
-    menuToggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleMenu();
-    });
+    if (menuToggle) {
+        menuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleMenu();
+        });
+    }
            
     // Close menu when clicking outside
     document.addEventListener('click', function(e) {
-        if (!dropdownMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+        if (dropdownMenu && !dropdownMenu.contains(e.target) && menuToggle && !menuToggle.contains(e.target)) {
             closeDropdownMenu();
         }
     });
@@ -1102,29 +1412,33 @@ document.addEventListener('DOMContentLoaded', function() {
     });
            
     // Close dropdown when clicking on a link inside it
-    dropdownMenu.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', () => {
-            closeDropdownMenu();
+    if (dropdownMenu) {
+        dropdownMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                closeDropdownMenu();
+            });
         });
-    });
+    }
            
     // Header scroll effect
     let lastScrollTop = 0;
     const header = document.querySelector('header');
            
-    window.addEventListener('scroll', () => {
-        let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-               
-        if (scrollTop > lastScrollTop && scrollTop > 100) {
-            // Scrolling down
-            header.style.transform = 'translateY(-100%)';
-        } else {
-            // Scrolling up
-            header.style.transform = 'translateY(0)';
-        }
-               
-        lastScrollTop = scrollTop;
-    });
+    if (header) {
+        window.addEventListener('scroll', () => {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                   
+            if (scrollTop > lastScrollTop && scrollTop > 100) {
+                // Scrolling down
+                header.style.transform = 'translateY(-100%)';
+            } else {
+                // Scrolling up
+                header.style.transform = 'translateY(0)';
+            }
+                   
+            lastScrollTop = scrollTop;
+        });
+    }
            
     // Initialize all features
     initPageFeatures();
