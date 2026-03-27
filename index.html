@@ -6,6 +6,8 @@
     <title>Rosvenil Hotel Tacloban</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Header & Navigation -->
@@ -87,6 +89,14 @@
                     <p><i class="fas fa-map-marker-alt"></i> 302 P. Burgos St, Tacloban City</p>
                     <p><i class="fas fa-phone-alt"></i> +63 917 830 4757</p>
                     <p><i class="fas fa-envelope"></i> rosvenilhotel@gmail.com</p>
+                    <!-- Newsletter Subscription -->
+                    <form class="newsletter-form" style="margin-top: 15px;">
+                        <h4 style="color: var(--gold); margin-bottom: 10px;">Subscribe to Newsletter</h4>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="email" placeholder="Your email" style="flex: 1; padding: 8px; border-radius: 5px; border: none;">
+                            <button type="submit" style="background: var(--gold); color: var(--dark-burgundy); border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Subscribe</button>
+                        </div>
+                    </form>
                 </div>
             </div>
             <div class="copyright">
@@ -104,6 +114,9 @@
         </div>
     </div>
 
+    <!-- Supabase Configuration -->
+    <script src="supabase-config.js"></script>
+    <!-- Main Script -->
     <script src="script.js"></script>
 </body>
 </html>
