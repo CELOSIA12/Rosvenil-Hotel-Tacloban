@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosvenil Hotel Tacloban</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <header>
+        <div class="container header-container">
+            <!-- Menu Icon -->
+            <div class="menu-icon-container">
+                <button class="menu-icon" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+               
+                <!-- Dropdown Menu -->
+                <div class="dropdown-menu" id="dropdownMenu">
+                    <div class="dropdown-content">
+                        <div class="dropdown-section">
+                            <h3>Navigation</h3>
+                            <a onclick="loadPage('home')"><i class="fas fa-tag"></i> OFFERS</a>
+                            <a onclick="loadPage('rooms')"><i class="fas fa-bed"></i> ROOMS</a>
+                            <a onclick="loadPage('booking')"><i class="fas fa-calendar-check"></i> BOOK NOW</a>
+                            <a onclick="loadPage('contact')"><i class="fas fa-phone-alt"></i> CONTACT US</a>
+                        </div>
+                        <div class="dropdown-section">
+                            <h3>Contact Information</h3>
+                            <a href="mailto:rosvenilhotel@gmail.com"><i class="fas fa-envelope"></i> rosvenilhotel@gmail.com</a>
+                            <a href="https://www.facebook.com/Rosvenilhoteltac" target="_blank"><i class="fab fa-facebook"></i> Facebook Page</a>
+                            <a href="tel:+639178304757"><i class="fas fa-phone"></i> +63 917 830 4757</a>
+                            <a href="tel:+639178304758"><i class="fas fa-phone"></i> +63 917 830 4758</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           
+            <div class="logo-container">
+                <img src="https://uploads.onecompiler.io/42yy7kb7e/44c7ccvbc/logos01-removebg-preview.png"
+                     alt="Rosvenil Hotel Logo"
+                     class="logo-img"
+                     onclick="loadPage('home')">
+            </div>
+            <nav>
+                <ul>
+                    <li><a onclick="loadPage('home')" class="active"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a onclick="loadPage('rooms')"><i class="fas fa-bed"></i> Rooms</a></li>
+                    <li><a onclick="loadPage('dining')"><i class="fas fa-utensils"></i> Dining</a></li>
+                    <li><a onclick="loadPage('contact')"><i class="fas fa-phone-alt"></i> Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div id="page-content">
+        <!-- Home page content will be loaded here by JavaScript -->
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Rosvenil Hotel Tacloban</h3>
+                    <p>Experience comfort and convenience in the heart of Tacloban City. Affordable luxury with 24/7 service.</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/Rosvenilhoteltac" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-tripadvisor"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <a onclick="loadPage('home')">Home</a>
+                    <a onclick="loadPage('rooms')">Rooms & Suites</a>
+                    <a onclick="loadPage('dining')">Dining</a>
+                    <a onclick="loadPage('home')">Special Offers</a>
+                    <a onclick="loadPage('contact')">Contact Us</a>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Info</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 302 P. Burgos St, Tacloban City</p>
+                    <p><i class="fas fa-phone-alt"></i> +63 917 830 4757</p>
+                    <p><i class="fas fa-envelope"></i> rosvenilhotel@gmail.com</p>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2026 Rosvenil Hotel Tacloban. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cookie Banner -->
+    <div class="cookie-banner" id="cookieBanner">
+        <p>This website uses cookies to ensure you get the best experience. By continuing to use our site, you agree to our use of cookies.</p>
+        <div class="cookie-buttons">
+            <button class="cookie-btn accept-btn" id="acceptCookies">Accept</button>
+            <button class="cookie-btn reject-btn" id="rejectCookies">Reject</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
